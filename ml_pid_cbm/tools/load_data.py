@@ -8,8 +8,8 @@ from typing import Tuple
 from hipe4ml.model_handler import ModelHandler
 from hipe4ml.tree_handler import TreeHandler
 
-from . import json_tools
-from .particles_id import ParticlesId as Pid
+import json_tools
+from particles_id import ParticlesId as Pid
 
 
 class LoadData:
@@ -211,7 +211,7 @@ class LoadData:
             model_handler=model_handler,
             output_margin=False,
         )
-        print(f"\nLoading tree from {data_file_name}...")
+        # print(f"\nLoading tree from {data_file_name}...")
         return tree_handler
 
     def clean_tree(self, json_file_name: str = None) -> str:

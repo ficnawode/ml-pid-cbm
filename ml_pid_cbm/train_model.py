@@ -134,7 +134,7 @@ if __name__ == "__main__":
     args = parse_args(sys.argv[1:])
     # config  arguments to be loaded from args
     json_file_name = args.config[0]
-    lower_p_cut, upper_p_cut = args.momentum[0], args.momentum[1]
+    lower_p_cut, upper_p_cut = float(args.momentum[0]), float(args.momentum[1])
     anti_particles = args.antiparticles
     optimize_hyper_params = args.hyperparams
     use_gpu = args.gpu

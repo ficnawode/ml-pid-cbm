@@ -1,17 +1,18 @@
 #!/bin/bash
 
 eval "$(conda shell.bash hook)"
-conda activate cbm22
+conda activate cbm23
 
-CONFIG="config.json"
+CONFIG="../slurm_config.json"
 
 #validation of single models
-for dir in model_*
+RESULT_DIR=/lustre/cbm/users/$USER/pid/
+for dir in $RESULT_DIR/model_*
     do
         if [[ -d "$dir" ]]; then
             readymodels+="$dir "
-            # echo $dir
-            # python ../../validate_model.py -c $CONFIG -m $dir -n 4 -e .4 .95 40 
+            echo $dir
+            python ../validate_model.py -c $CONFIG -m $dir -n 4 -e .4 .95 40 
        fi
 done
 #manual proba values
@@ -21,4 +22,4 @@ done
 #python ../../validate_model.py -c $CONFIG -m model_6.0_9.0_positive -n 4  -p .4 .95 .4
 #python ../../validate_model.py -c $CONFIG -m model_9.0_12.0_positive -n 4 -p .4 .4 .4
 #validation of all models
-python ../../validate_multiple_models.py -c $CONFIG -m $readymodels --nworkers 4
+python ../validate_multiple_models.py -c $CONFIG -m $readymodels --nworkers 4
