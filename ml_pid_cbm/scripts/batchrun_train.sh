@@ -27,7 +27,6 @@ NBINS=5
 
 mlpidpath=/lustre/cbm/users/$USER/ml-pid-cbm/ml_pid_cbm
 CONFIG=$mlpidpath/slurm_config.json
-python_output="$(python $mlpidpath/tools/auto_bin.py --config=$CONFIG --nbins=$NBINS)"
 
 
 sbatch --job-name="all" \
@@ -37,6 +36,8 @@ sbatch --job-name="all" \
         --error=$LOGDIR/error/%j.err.log \
         --array=1-$NBINS\
         --wait\
-        -- $PWD/slurm_ml_pid.sh $WORKDIR $NBINS \"$python_output\"
+        -- $PWD/ml_job.sh $CONFIG $NBINS 
 
+eval "$(conda shell.bash hook)"
+conda activate cbm23
 python notify/notify.py --config notify/telegram_bot_config.json --message "Your neural network has finished training and results can be found at $WORKDIR"

@@ -1,6 +1,6 @@
 import numpy as np
 from matplotlib import pyplot as plt
-from load_data import LoadData
+from tools.load_data import LoadData
 import argparse
 import json
 
