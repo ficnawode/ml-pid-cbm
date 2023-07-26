@@ -1,6 +1,8 @@
 import os
 import argparse
 from ml_pid_cbm.tools.auto_bin import AutoBin
+from ml_pid_cbm import train_model
+import sys
 import subprocess
 
 
@@ -13,22 +15,15 @@ class MlPIDJob:
 
 
     def run(self):
-        print("made it to run method")
-        cmd = "python"
-        cmd += f"{self.ml_pid_path}/train_model.py"
-        cmd += f"--config={self.config_path}"
-
         print("made it to run calculating bounds")
         lower, upper = self.calculate_bounds(self.config_path, self.nbins)
-        cmd += f"-p {lower} {upper}"
-        cmd += f"--saveplots"
-        cmd += f"tee training_output_{self.slurm_index}.txt"
-        print("made it to subprocess running")
-        subprocess.run(cmd)
+        print(f"{lower}, {upper}")
+        # print("made it to subprocess running")
+        # train_model.launch(self.config_path, lower, upper)
     
     @staticmethod
-    def calculate_bounds(config_path, nbins):
-        bins = AutoBin.bin_by_momentum(config_path, nbins)
+    def calculate_bounds(tree_handler, nbins):
+        bins = AutoBin.bin_by_momentum(tree_handler, nbins)
         slurm_index = os.getenv("SLURM_INDEX")
         return bins[slurm_index - 1], bins[slurm_index]
     
@@ -44,6 +39,9 @@ class MlPIDJob:
 
 
 if __name__ == "__main__":
+    print("Beginning logging")
     args = MlPIDJob.parse_args()
+    print("Successfully parsed args")
     job = MlPIDJob(args.config, args.nbins)
+    print("Successfully initialized job object")
     job.run()

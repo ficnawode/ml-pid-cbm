@@ -23,7 +23,7 @@ echo "logs can be found at $LOGDIR"
 
 alias conda="/lustre/cbm/users/$USER/miniconda3/bin/conda"
 
-NBINS=5
+NBINS="5"
 
 mlpidpath=/lustre/cbm/users/$USER/ml-pid-cbm/ml_pid_cbm
 CONFIG=$mlpidpath/slurm_config.json
@@ -36,7 +36,7 @@ sbatch --job-name="all" \
         --error=$LOGDIR/error/%j.err.log \
         --array=1-$NBINS\
         --wait\
-        -- $PWD/ml_job.sh $CONFIG $NBINS 
+        -- $PWD/slurm_ml_pid.sh $WORKDIR $NBINS 
 
 eval "$(conda shell.bash hook)"
 conda activate cbm23

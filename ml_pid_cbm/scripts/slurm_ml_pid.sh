@@ -2,9 +2,6 @@
 
 RESULTDIR=$1
 NBINS=$2
-PYTHON_OUTPUT=$3
-bins_string=${PYTHON_OUTPUT//\"/}
-echo $bins_string
 
 
 INDEX=${SLURM_ARRAY_TASK_ID}
@@ -23,12 +20,6 @@ export FONTCONFIG_PATH=$CONDA_PREFIX/etc/fonts/
 CONFIG=$mlpidpath/slurm_config.json
 cd $RESULTDIR
 
-IFS=' ' read -r -a bins <<< "$bins_string"
-echo "${bins[@]}"
-UPPER_BOUND=${bins[$INDEX]}
-echo "UPPER_BOUND=$UPPER_BOUND"
-LOWER_BOUND=${bins[$INDEX-1]}
-echo "LOWER_BOUND=$LOWER_BOUND"
 #run training
-python $mlpidpath/train_model.py -c $CONFIG -p $(LOWER_BOUND) $(UPPER_BOUND) --saveplots | tee training_output_${INDEX}.txt
+python $mlpidpath/train_model.py -c $CONFIG --autobins=$NBINS --saveplots >&training_output_${INDEX}.txt
 

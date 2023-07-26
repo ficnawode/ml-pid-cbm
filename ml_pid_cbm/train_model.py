@@ -14,6 +14,8 @@ from sklearn.utils.class_weight import compute_sample_weight
 from tools import json_tools, plotting_tools
 from tools.load_data import LoadData
 from tools.prepare_model import PrepareModel
+from tools.auto_bin import AutoBin
+from time import sleep
 
 
 class TrainModel:
@@ -82,7 +84,7 @@ def parse_args(args: List[str]) -> argparse.Namespace:
         "--momentum",
         "-p",
         nargs=2,
-        required=True,
+        required=False,
         type=float,
         help="Lower and upper momentum limit, e.g., 1 3",
     )
@@ -125,8 +127,11 @@ def parse_args(args: List[str]) -> argparse.Namespace:
         action="store_true",
         help="if should use validation dataset for post-training plots",
     )
+    parser.add_argument(
+        "--autobins",
+        help="how many bins to separate the data into, default is 5"
+    )
     return parser.parse_args(args)
-
 
 # main method of the training
 if __name__ == "__main__":
@@ -134,7 +139,8 @@ if __name__ == "__main__":
     args = parse_args(sys.argv[1:])
     # config  arguments to be loaded from args
     json_file_name = args.config[0]
-    lower_p_cut, upper_p_cut = float(args.momentum[0]), float(args.momentum[1])
+
+
     anti_particles = args.antiparticles
     optimize_hyper_params = args.hyperparams
     use_gpu = args.gpu
@@ -142,15 +148,23 @@ if __name__ == "__main__":
     create_plots = args.printplots or args.saveplots or False
     save_plots = args.saveplots
     use_validation = args.usevalidation
+    data_file_name = json_tools.load_file_name(json_file_name, "training")
+    nbins = int(args.autobins)
+
+
+    def calculate_bounds(config_path, nbins):
+        bins = AutoBin.bin_by_momentum(config_path, nbins)
+        slurm_index = int(os.getenv("SLURM_ARRAY_TASK_ID"))
+        return bins[slurm_index - 1], bins[slurm_index]
+    lower_p_cut, upper_p_cut = calculate_bounds(json_file_name, nbins)
+
     if anti_particles:
         model_name = f"model_{lower_p_cut:.1f}_{upper_p_cut:.1f}_anti"
     else:
         model_name = f"model_{lower_p_cut:.1f}_{upper_p_cut:.1f}_positive"
-    data_file_name = json_tools.load_file_name(json_file_name, "training")
 
-    # loading data
     loader = LoadData(
-        data_file_name, json_file_name, lower_p_cut, upper_p_cut, anti_particles
+        data_file_name, json_file_name, lower_p_cut,upper_p_cut, anti_particles
     )
     tree_handler = loader.load_tree(max_workers=n_workers)
     NSIGMA_PROTON = 0
@@ -164,6 +178,7 @@ if __name__ == "__main__":
     )
     print(f"\nProtons, kaons, and pions loaded using file {data_file_name}\n")
     del tree_handler
+    del loader
     gc.collect()
     # change location to specific folder for this model
     json_file_path = os.path.join(os.getcwd(), json_file_name)
