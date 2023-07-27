@@ -1,19 +1,9 @@
 #!/bin/bash
 
-read -p "Do you want to start the job? (y/n): " response
-
-if [ "$response" != "y" ]; then
-    echo "Exiting the program."
-    exit 1
-fi
-
 timestamp=$(date +"%Y%m%d_%H%M%S")
-
-# Create the directory with the desired name
-DIR_NAME="batchrun_train_${timestamp}"
-WORKDIR=/lustre/cbm/users/$USER/pid/$DIR_NAME
+NEW_DIR_NAME="train_${timestamp}"
+WORK_DIR=/lustre/cbm/users/$USER/pid/$NEW_DIR_NAME
 mkdir -p $WORKDIR
-echo "Created directory: $WORKDIR"
 LOGDIR=$WORKDIR/log
 mkdir -p $LOGDIR
 mkdir -p $LOGDIR/out
@@ -21,13 +11,7 @@ mkdir -p $LOGDIR/error
 
 echo "logs can be found at $LOGDIR"
 
-alias conda="/lustre/cbm/users/$USER/miniconda3/bin/conda"
-
-NBINS="5"
-
-mlpidpath=/lustre/cbm/users/$USER/ml-pid-cbm/ml_pid_cbm
-CONFIG=$mlpidpath/slurm_config.json
-
+NBINS="6"
 
 sbatch --job-name="all" \
         -t 6:00:00 \
