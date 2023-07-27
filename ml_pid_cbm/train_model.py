@@ -154,7 +154,8 @@ if __name__ == "__main__":
 
 
     def get_bounds(config_path, nbins):
-        config = json.load(config_path)
+        with open(config_path) as fp:
+            config = json.load(fp)
         bins = config['bins']
         slurm_index = int(os.getenv("SLURM_ARRAY_TASK_ID"))
         return bins[slurm_index - 1], bins[slurm_index]
