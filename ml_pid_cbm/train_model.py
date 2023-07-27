@@ -8,6 +8,7 @@ import os
 import sys
 from shutil import copy2
 from typing import List
+import json
 
 from hipe4ml.model_handler import ModelHandler
 from sklearn.utils.class_weight import compute_sample_weight
@@ -152,11 +153,12 @@ if __name__ == "__main__":
     nbins = int(args.autobins)
 
 
-    def calculate_bounds(config_path, nbins):
-        bins = AutoBin.bin_by_momentum(config_path, nbins)
+    def get_bounds(config_path, nbins):
+        config = json.load(config_path)
+        bins = config['bins']
         slurm_index = int(os.getenv("SLURM_ARRAY_TASK_ID"))
         return bins[slurm_index - 1], bins[slurm_index]
-    lower_p_cut, upper_p_cut = calculate_bounds(json_file_name, nbins)
+    lower_p_cut, upper_p_cut = get_bounds(json_file_name, nbins)
 
     if anti_particles:
         model_name = f"model_{lower_p_cut:.1f}_{upper_p_cut:.1f}_anti"

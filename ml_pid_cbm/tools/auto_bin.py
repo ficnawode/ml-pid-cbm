@@ -9,8 +9,8 @@ import gc
 
 class AutoBin:
     @staticmethod
-    def bin_by_momentum(config_path:str, ncuts:int=6) -> np.array:
-        p = AutoBin.__load_momentum(config_path);
+    def bin_by_momentum(config_path:str, ncuts:int=6, npieces:int = 8) -> np.array:
+        p = AutoBin.__load_momentum(config_path, npieces);
         N = len(p)
         bins = AutoBin.__calculate_bins(p, N, ncuts)
         print(bins)
@@ -57,12 +57,26 @@ class AutoBin:
         F1 = np.cumsum(counts)
         return np.append(np.interp(Ns, F1, bins[1:]), 12)
 
+    @staticmethod
+    def parse_args()->argparse.Namespace:
+        parser = argparse.ArgumentParser(
+                            prog='autobinner',
+                        description='',
+                        epilog='')
+        parser.add_argument('-c', '--config', help="Path to config.json file", type=str)
+        parser.add_argument('-n', '--nbins', help="Number of bins to separate the data into", type=int, default=5)
+        parser.add_argument('-p', '--npieces', help="Number of pieces to split the data into at loading", type=int, default=8)
+        parser.add_argument('-v', '--variable', help="Variable key to split the bins by (for instance \'Complex_p\')", type=str, default="Complex_p")
+        parser.add_argument('-t', '--particletype', help="Particle type to sort data by (for instance only by kaon amount, ignoring the other ones)",type=str, default="ALL")
+        return parser.parse_args()  
+    
+
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-                    prog='autobinner',
-                    description='',
-                    epilog='')
-    parser.add_argument('-c', '--config')
-    parser.add_argument('-n', '--nbins')
-    args = parser.parse_args()  
-    AutoBin.bin_by_momentum(args.config, int(args.nbins))
+    args = AutoBin.parse_args()
+    bins = AutoBin.bin_by_momentum(args.config, int(args.nbins))
+    with open(args.config, "r") as fp:
+        config = json.load(fp)
+    config['bins'] = bins.tolist()
+    print(config)
+    with open(args.config, "w") as fp:
+        json.dump(config, fp)
