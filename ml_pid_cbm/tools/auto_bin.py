@@ -50,12 +50,23 @@ class AutoBin:
 
     @staticmethod
     def __calculate_bins(x: np.array, N: np.array, ncuts:int) -> np.array:
-        counts, bins, bars = plt.hist(x, bins=1000)
-        plt.savefig("momentum_distribution.jpg", dpi=350)
+        counts, edges, bars = plt.hist(x, bins=1000)
         Nchunk = N / ncuts
         Ns = [Nchunk*i for i in range(0, ncuts)]
         F1 = np.cumsum(counts)
-        return np.append(np.interp(Ns, F1, bins[1:]), 12)
+        bins = np.append(np.interp(Ns, F1, edges[1:]), 12)
+        plt.vlines(bins,[0 for x in bins],[counts.max() for x in bins], colors=['red' for x in bins])
+        plt.savefig("momentum_distribution.jpg", dpi=350)
+        plt.xlabel("p")
+        plt.ylabel("N")
+        plt.show()
+        counts, edges, bars = plt.hist(x,bins=bins)
+        plt.bar_label(bars)
+        plt.xlabel("p")
+        plt.ylabel("N")
+        plt.savefig("even_binning_hist.jpg")
+        plt.show()
+        return bins
 
     @staticmethod
     def parse_args()->argparse.Namespace:
@@ -66,17 +77,14 @@ class AutoBin:
         parser.add_argument('-c', '--config', help="Path to config.json file", type=str)
         parser.add_argument('-n', '--nbins', help="Number of bins to separate the data into", type=int, default=5)
         parser.add_argument('-p', '--npieces', help="Number of pieces to split the data into at loading", type=int, default=8)
-        parser.add_argument('-v', '--variable', help="Variable key to split the bins by (for instance \'Complex_p\')", type=str, default="Complex_p")
-        parser.add_argument('-t', '--particletype', help="Particle type to sort data by (for instance only by kaon amount, ignoring the other ones)",type=str, default="ALL")
         return parser.parse_args()  
     
 
 if __name__ == "__main__":
     args = AutoBin.parse_args()
-    bins = AutoBin.bin_by_momentum(args.config, int(args.nbins))
+    bins = AutoBin.bin_by_momentum(args.config, int(args.nbins), int(args.npieces))
     with open(args.config, "r") as fp:
         config = json.load(fp)
     config['bins'] = bins.tolist()
-    print(config)
     with open(args.config, "w") as fp:
         json.dump(config, fp)

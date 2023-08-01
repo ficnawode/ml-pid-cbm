@@ -2,6 +2,7 @@
 
 RESULT_DIR=$1
 NBINS=$2
+CONFIG=$3
 
 WORK_DIR=/lustre/cbm/users/$USER
 
@@ -15,8 +16,7 @@ export FONTCONFIG_FILE=$CONDA_PREFIX/etc/fonts/fonts.conf
 export FONTCONFIG_PATH=$CONDA_PREFIX/etc/fonts/
 
 cd $RESULT_DIR
-MLPIDCBM_DIR=$WORK_DIR/ml-pid-cbm/ml_pid_cbm
-CONFIG=$MLPIDCBM_DIR/slurm_config.json
 INDEX=${SLURM_ARRAY_TASK_ID}
-python $MLPIDCBM_DIR/train_model.py -c $CONFIG --autobins=$NBINS --saveplots >&training_output_${INDEX}.txt
+MLPIDCBM_DIR=/lustre/cbm/users/$USER/ml-pid-cbm/ml_pid_cbm
+python $MLPIDCBM_DIR/train_model.py -c=$CONFIG --autobins=$NBINS --saveplots >&training_output_${INDEX}.txt
 

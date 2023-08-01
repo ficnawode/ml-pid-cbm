@@ -12,17 +12,17 @@ mkdir -p $LOG_DIR/error
 
 echo "logs can be found at $LOG_DIR"
 
-NBINS="10"
+NBINS="5"
 
-MLPIDCBM_DIR=$WORK_DIR/ml-pid-cbm/ml_pid_cbm
+MLPIDCBM_DIR=/lustre/cbm/users/$USER/ml-pid-cbm/ml_pid_cbm
 CONFIG=$MLPIDCBM_DIR/slurm_config.json
 
-sbatch --job-name="autobin"\
-        --partition main\
-        --output=$LOG_DIR/out/%j.out.log \
-        --error=$LOG_DIR/error/%j.err.log \
-        --wait\
-        -- $PWD/jobs/autobin_job.sh $WORK_DIR $NBINS $CONFIG
+# sbatch --job-name="autobin"\
+#         --partition main\
+#         --output=$LOG_DIR/out/%j.out.log \
+#         --error=$LOG_DIR/error/%j.err.log \
+#         --wait\
+#         -- $PWD/jobs/autobin_job.sh $WORK_DIR $NBINS $CONFIG
 
 sbatch --job-name="train-all" \
         -t 6:00:00 \
@@ -33,6 +33,13 @@ sbatch --job-name="train-all" \
         --wait\
         -- $PWD/jobs/train_job.sh $WORK_DIR $NBINS $CONFIG
 
+sbatch --job-name="validate-all"\
+        --partition main\
+        --output=$LOG_DIR/out/%j.out.log \
+        --error=$LOG_DIR/error/%j.err.log \
+        --wait\
+        -- $PWD/jobs/validate_job.sh $WORK_DIR $CONFIG
+
 eval "$(conda shell.bash hook)"
 conda activate cbm23
-python util/notify.py --config util/telegram_bot_config.json --message "Your neural network has finished training and results can be found at $WORKDIR"
+python util/notify.py --config util/telegram_bot_config.json --message "Your neural network has finished training and results can be found at $WORK_DIR"
