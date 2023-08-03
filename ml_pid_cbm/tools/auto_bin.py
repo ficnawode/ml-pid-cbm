@@ -2,6 +2,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from tools.load_data import LoadData
 from hipe4ml.tree_handler import TreeHandler
+from tools.particles_id import ParticlesId as Pid
 import argparse
 import json
 import gc
@@ -31,7 +32,9 @@ class AutoBin:
     @staticmethod
     def __load_momentum_chunk(config_path:str, lower_cut:float, upper_cut:float)->np.array:
         tree_loader = AutoBin.__load_data_chunk(config_path, lower_cut, upper_cut)
-        p = tree_loader.get_data_frame()["Complex_p"].to_numpy(copy=True)
+        df = tree_loader.get_data_frame()
+        df = df[df["Complex_pid"] == Pid.POS_KAON.value]
+        p = df["Complex_p"].values
         print(f"momentum chunk length: {len(p)}")
         return p
 

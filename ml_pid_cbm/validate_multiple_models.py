@@ -4,6 +4,9 @@ import sys
 from concurrent.futures import ThreadPoolExecutor
 from shutil import copy2
 from typing import List, Set
+from sklearn.metrics import confusion_matrix
+import json
+from matplotlib import pyplot as plt
 
 import pandas as pd
 
@@ -16,12 +19,13 @@ class ValidateMultipleModels(ValidateModel):
     Inherits from ValidateModel
     """
 
-    def __init__(self, json_file_name: str, files_list: Set[str], n_workers: int = 1):
-        super().__init__(-12, 12, False, json_file_name, None)
-        self.particles_df = self.load_pickles(files_list, n_workers)
+    def __init__(self, config_file_name: str, files_list: Set[str], n_workers: int = 1):
+        super().__init__(-12, 12, False, config_file_name, None)
+        self.particles_df = self.__load_pickles(files_list, n_workers)
+        self.config=config_file_name
 
     @staticmethod
-    def load_pickles(files_list: Set[str], n_workers: int = 1) -> pd.DataFrame:
+    def __load_pickles(files_list: Set[str], n_workers: int = 1) -> pd.DataFrame:
         """Loads multiple pickle files produced by validate_model module.
 
         Args:
@@ -34,7 +38,47 @@ class ValidateMultipleModels(ValidateModel):
         with ThreadPoolExecutor(max_workers=n_workers) as executor:
             results = list(executor.map(pd.read_pickle, files_list))
             whole_df = pd.concat(results, ignore_index=True)
-        return whole_df
+            return whole_df
+    @staticmethod
+    def get_df_p_slice(df:pd.DataFrame, low_p : float, hi_p: float)->pd.DataFrame:
+        temp = df.loc[df['Complex_p'] > low_p ]
+        return temp.loc[df['Complex_p'] < hi_p]
+
+    @staticmethod
+    def get_bins_from_config(config_file_name: str)->List:
+        with open(config_file_name, "r") as fp:
+            d = json.load(fp)
+            return d["bins"]
+    
+    def get_stats(self, particles:pd.DataFrame, particle_id: int, low_p:float, hi_p:float)->Tuple[float,float]:
+        df = self.get_df_p_slice(particles, low_p, hi_p)
+
+        cnf_matrix = confusion_matrix(
+            df[self.pid_variable_name], df["xgb_preds"]
+        )
+        return self.efficiency_stats(cnf_matrix,particle_id, print_output=False)
+
+    def plot_stats(self, particle_id:int):
+        bins = self.get_bins_from_config(self.config)
+        efficiencies=[]
+        purities=[]
+        bin_mids=[]
+        for i in range(0, len(bins) - 1):
+            lo, hi = bins[i: i+2]
+            efficiency, purity = self.get_stats(self.particles_df, particle_id, lo, hi)
+            efficiencies.append(efficiency)
+            purities.append(purity)
+            bin_mids.append((lo+hi)/2)
+
+        plt.plot(bin_mids, efficiencies,"--o", label="Efficiency %", color="purple")
+        plt.plot(bin_mids, purities,"--x", label="Purity %", color="green")
+        plt.title(f"Purity and efficiency {particle_id}")
+        plt.vlines(bins,[0 for b in bins],[100 for b in bins], color='grey', linestyle='dotted', label='bin edge')
+        plt.xlabel("p [GeV/C]")
+        plt.ylabel("%")
+        plt.legend()
+        plt.savefig(f"purity_efficiency_{particle_id}", dpi=350)
+        plt.close()
 
 
 def parse_args(args: List[str]) -> argparse.Namespace:
@@ -95,3 +139,6 @@ if __name__ == "__main__":
     validate.confusion_matrix_and_stats()
     print("Generating plots...")
     validate.generate_plots()
+    validate.plot_stats(0)
+    validate.plot_stats(1)
+    validate.plot_stats(2)

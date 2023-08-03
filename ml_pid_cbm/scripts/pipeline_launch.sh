@@ -1,4 +1,10 @@
 #!/bin/bash
+if [ "$#" -ne 2 ]; then
+    echo "Illegal number of parameters \$1 - path to config \$2 - num of bins"
+fi
+
+CONFIG=$1
+NBINS=$2
 
 timestamp=$(date +"%Y%m%d_%H%M%S")
 NEW_DIR_NAME="train_${timestamp}"
@@ -12,17 +18,17 @@ mkdir -p $LOG_DIR/error
 
 echo "logs can be found at $LOG_DIR"
 
-NBINS="5"
+# NBINS="5"
 
 MLPIDCBM_DIR=/lustre/cbm/users/$USER/ml-pid-cbm/ml_pid_cbm
-CONFIG=$MLPIDCBM_DIR/slurm_config.json
+# CONFIG=$MLPIDCBM_DIR/slurm_config.json
 
-# sbatch --job-name="autobin"\
-#         --partition main\
-#         --output=$LOG_DIR/out/%j.out.log \
-#         --error=$LOG_DIR/error/%j.err.log \
-#         --wait\
-#         -- $PWD/jobs/autobin_job.sh $WORK_DIR $NBINS $CONFIG
+sbatch --job-name="autobin"\
+        --partition main\
+        --output=$LOG_DIR/out/%j.out.log \
+        --error=$LOG_DIR/error/%j.err.log \
+        --wait\
+        -- $PWD/jobs/autobin_job.sh $WORK_DIR $NBINS $CONFIG
 
 sbatch --job-name="train-all" \
         -t 6:00:00 \
@@ -37,8 +43,16 @@ sbatch --job-name="validate-all"\
         --partition main\
         --output=$LOG_DIR/out/%j.out.log \
         --error=$LOG_DIR/error/%j.err.log \
+        --array=1-$NBINS\
         --wait\
         -- $PWD/jobs/validate_job.sh $WORK_DIR $CONFIG
+
+sbatch --job-name="consolidate"\
+        --partition main\
+        --output=$LOG_DIR/out/%j.out.log \
+        --error=$LOG_DIR/error/%j.err.log \
+        --wait\
+        -- $PWD/jobs/validate_multiple_job.sh $WORK_DIR $CONFIG
 
 eval "$(conda shell.bash hook)"
 conda activate cbm23

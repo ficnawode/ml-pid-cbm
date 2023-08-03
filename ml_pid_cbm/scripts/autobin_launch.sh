@@ -12,10 +12,10 @@ mkdir -p $LOG_DIR/error
 
 echo "logs can be found at $LOG_DIR"
 
-NBINS="10"
+NBINS="7"
 
 MLPIDCBM_DIR=/lustre/cbm/users/$USER/ml-pid-cbm/ml_pid_cbm
-CONFIG=$MLPIDCBM_DIR/slurm_config.json
+CONFIG=$MLPIDCBM_DIR/scripts/configs/config7bins.json
 
 sbatch --job-name="autobin"\
         --partition main\
@@ -26,4 +26,4 @@ sbatch --job-name="autobin"\
 
 eval "$(conda shell.bash hook)"
 conda activate cbm23
-python util/notify.py --config util/telegram_bot_config.json --message "Your neural network has finished training and results can be found at $WORK_DIR"
+# python util/notify.py --config util/telegram_bot_config.json --message "Autobinning has finished and results are saved at $CONFIG"
