@@ -3,7 +3,7 @@ import os
 import sys
 from concurrent.futures import ThreadPoolExecutor
 from shutil import copy2
-from typing import List, Set
+from typing import List, Set, Tuple
 from sklearn.metrics import confusion_matrix
 import json
 from matplotlib import pyplot as plt

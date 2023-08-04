@@ -158,6 +158,7 @@ if __name__ == "__main__":
             config = json.load(fp)
         bins = config['bins']
         slurm_index = int(os.getenv("SLURM_ARRAY_TASK_ID"))
+        print(f"bins: {bins[slurm_index - 1], bins[slurm_index]}")
         return bins[slurm_index - 1], bins[slurm_index]
     lower_p_cut, upper_p_cut = get_bounds(json_file_name, nbins)
 

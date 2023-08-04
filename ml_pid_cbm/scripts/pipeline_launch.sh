@@ -21,18 +21,19 @@ echo "logs can be found at $LOG_DIR"
 # NBINS="5"
 
 MLPIDCBM_DIR=/lustre/cbm/users/$USER/ml-pid-cbm/ml_pid_cbm
-# CONFIG=$MLPIDCBM_DIR/slurm_config.json
 
-sbatch --job-name="autobin"\
-        --partition main\
-        --output=$LOG_DIR/out/%j.out.log \
-        --error=$LOG_DIR/error/%j.err.log \
-        --wait\
-        -- $PWD/jobs/autobin_job.sh $WORK_DIR $NBINS $CONFIG
+ sbatch --job-name="autobin"\
+         --partition high_mem\
+         --mem=16000 \
+         --output=$LOG_DIR/out/%j.out.log \
+         --error=$LOG_DIR/error/%j.err.log \
+         --wait\
+         -- $PWD/jobs/autobin_job.sh $WORK_DIR $NBINS $CONFIG
 
 sbatch --job-name="train-all" \
         -t 6:00:00 \
-        --partition main \
+        --partition high_mem \
+        --mem=16000 \
         --output=$LOG_DIR/out/%j.out.log \
         --error=$LOG_DIR/error/%j.err.log \
         --array=1-$NBINS\
@@ -40,7 +41,8 @@ sbatch --job-name="train-all" \
         -- $PWD/jobs/train_job.sh $WORK_DIR $NBINS $CONFIG
 
 sbatch --job-name="validate-all"\
-        --partition main\
+        --partition high_mem\
+        --mem=16000 \
         --output=$LOG_DIR/out/%j.out.log \
         --error=$LOG_DIR/error/%j.err.log \
         --array=1-$NBINS\
@@ -48,9 +50,11 @@ sbatch --job-name="validate-all"\
         -- $PWD/jobs/validate_job.sh $WORK_DIR $CONFIG
 
 sbatch --job-name="consolidate"\
-        --partition main\
+        --partition high_mem\
+        --mem=16000 \
         --output=$LOG_DIR/out/%j.out.log \
         --error=$LOG_DIR/error/%j.err.log \
+        --array=1-$NBINS\
         --wait\
         -- $PWD/jobs/validate_multiple_job.sh $WORK_DIR $CONFIG
 

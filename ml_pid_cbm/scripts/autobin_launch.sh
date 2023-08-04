@@ -21,9 +21,4 @@ sbatch --job-name="autobin"\
         --partition main\
         --output=$LOG_DIR/out/%j.out.log \
         --error=$LOG_DIR/error/%j.err.log \
-        --wait\
         -- $PWD/jobs/autobin_job.sh $WORK_DIR $NBINS $CONFIG
-
-eval "$(conda shell.bash hook)"
-conda activate cbm23
-# python util/notify.py --config util/telegram_bot_config.json --message "Autobinning has finished and results are saved at $CONFIG"

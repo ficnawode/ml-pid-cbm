@@ -33,7 +33,7 @@ class AutoBin:
     def __load_momentum_chunk(config_path:str, lower_cut:float, upper_cut:float)->np.array:
         tree_loader = AutoBin.__load_data_chunk(config_path, lower_cut, upper_cut)
         df = tree_loader.get_data_frame()
-        df = df[df["Complex_pid"] == Pid.POS_KAON.value]
+        df = df.loc[df["Complex_pid"] == Pid.POS_KAON.value]
         p = df["Complex_p"].values
         print(f"momentum chunk length: {len(p)}")
         return p

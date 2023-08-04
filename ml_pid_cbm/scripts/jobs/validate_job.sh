@@ -4,6 +4,7 @@ eval "$(conda shell.bash hook)"
 conda activate cbm23
 
 RESULT_DIR=$1 #/lustre/cbm/users/$USER/pid/train_20230801_092302
+CONFIG=$2
 MLPIDCBM_DIR=/lustre/cbm/users/$USER/ml-pid-cbm/ml_pid_cbm
 
 cd $RESULT_DIR
@@ -15,7 +16,6 @@ do
     if [[ -d "$dir" ]]; then
         readymodels+="$dir "
         echo $dir
-        CONFIG=$RESULT_DIR/$dir/slurm_config.json
         echo $CONFIG
 
         iteration_count=$((iteration_count + 1))
