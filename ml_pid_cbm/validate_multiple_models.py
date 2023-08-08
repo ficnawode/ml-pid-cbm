@@ -138,7 +138,7 @@ if __name__ == "__main__":
     # graphs
     validate.confusion_matrix_and_stats()
     print("Generating plots...")
-    validate.generate_plots()
     validate.plot_stats(0)
     validate.plot_stats(1)
     validate.plot_stats(2)
+    validate.generate_plots()
